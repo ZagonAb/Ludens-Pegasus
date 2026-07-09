@@ -80,6 +80,7 @@ FocusScope {
             _userInput.forceActiveFocus()
             raPopup.userInputActivated()
         }
+        Qt.inputMethod.show()
     }
 
     function open() {
@@ -97,6 +98,7 @@ FocusScope {
         isOpen = false
         raPopup._activeField = "none"
         raPopup.focus = false
+        Qt.inputMethod.hide()
         raPopup.popupClosed()
     }
 
@@ -112,6 +114,7 @@ FocusScope {
         api.memory.set("ra_api_key", k)
         _testState = "testing"
         _testMsg = ""
+        Qt.inputMethod.hide()
         _testConnection(u, k)
     }
 
