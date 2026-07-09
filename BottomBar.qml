@@ -7,8 +7,6 @@ Rectangle {
     property bool inGameView: false
     property string navigateIcon: inGameView ? "assets/images/icons/navigate2.png" : "assets/images/icons/navigate.png"
     property bool raLoading: false
-    property bool raAvailable: false
-    property bool raChecked: false
     property bool blurred: false
 
     color: "#000000"
@@ -70,35 +68,14 @@ Rectangle {
             }
 
             BarButton {
-                id: raSettingsButton
-                iconSource: "assets/images/icons/setting.png"
-                label: ""
-                visible: inGameView && raAvailable && raChecked && !raLoading
-            }
-
-            BarButton {
                 id: raIndicator
-                iconSource: {
-                    if (!inGameView) return ""
-                        if (raLoading) return "assets/images/icons/spinner.png"
-                            if (raChecked) {
-                                if (raAvailable) return "assets/images/icons/achievement.svg"
-                                    else return "assets/images/icons/no_achievement.svg"
-                            }
-                            return ""
-                }
-                label: {
-                    if (!inGameView) return ""
-                        if (raLoading) return "Loading RA..."
-                            if (raChecked) {
-                                if (raAvailable) return "Achievements"
-                                    else return "Achievements"
-                            }
-                            return ""
-                }
+                iconSource: inGameView ? (raLoading ? "assets/images/icons/spinner.png"
+                                                    : "assets/images/icons/achievement.svg")
+                                       : ""
+                label: inGameView ? (raLoading ? "Searching..." : "Achievements") : ""
                 rotating: raLoading
-                visible: inGameView && (raLoading || raChecked)
-                opacity: (raLoading || (raAvailable && raChecked && !raLoading)) ? 1.0 : 0.3
+                visible: inGameView
+                opacity: raLoading ? 0.6 : 1.0
             }
         }
     }
@@ -114,23 +91,11 @@ Rectangle {
         NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
     }
 
-    function updateRAStatus(loading, available) {
+    function setRALoading(loading) {
         raLoading = loading
-        if (!loading) {
-            raChecked = true
-            raAvailable = available
-        }
-    }
-
-    function resetRAStatus() {
-        raLoading = false
-        raAvailable = false
-        raChecked = false
     }
 
     onInGameViewChanged: {
-        if (!inGameView) {
-            resetRAStatus()
-        }
+        if (!inGameView) raLoading = false
     }
 }

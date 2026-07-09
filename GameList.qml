@@ -15,7 +15,6 @@ ListView {
         //console.log("GameList: No collection available");
         return "";
     }
-    property var raCache: ({})
     property bool skipNextUpdate: false
 
     clip: true
@@ -28,85 +27,8 @@ ListView {
     preferredHighlightEnd: height / 2 + 70 * vpx
     highlightFollowsCurrentItem: true
 
-    onVisibleChanged: {
-        if (visible && gameList.currentGame) {
-            bottomBar.updateRAStatus(currentRALoading, currentRAAvailable)
-        }
-    }
-
     Component.onCompleted: {
         positionViewAtIndex(0, ListView.Center)
-        initializeFirstGameTimer.start()
-    }
-
-    Component.onDestruction: {
-        raCheckTimer.stop()
-    }
-
-    function updateCurrentGameRA() {
-        if (!currentGame) {
-            finishRALoading(false)
-            return
-        }
-
-        //console.log("🔄 Checking RA for:", currentGame.title)
-
-        var gameKey = currentGame.title + "_" + (currentGame.RaGameId || "0")
-
-        if (raCache[gameKey]) {
-            //console.log("✅ Using cached RA data for:", currentGame.title)
-            var cachedData = raCache[gameKey]
-            finishRALoading(cachedData.hasRA, true)
-            return
-        }
-
-        if (currentGame.retroAchievementsCount > 0) {
-            //console.log("✅ RA already loaded for:", currentGame.title, "Count:", currentGame.retroAchievementsCount)
-            cacheRAData(currentGame, true)
-            finishRALoading(true)
-            return
-        }
-
-        gameRoot.currentRALoading = true
-        gameRoot.currentRAAvailable = false
-        bottomBar.updateRAStatus(true, false)
-
-        if (typeof currentGame.initRetroAchievements === 'function') {
-            currentGame.initRetroAchievements()
-        }
-
-        if (typeof currentGame.updateRetroAchievements === 'function' && currentGame.retroAchievementsCount === 0) {
-            //console.log("📡 Fetching RA data for:", currentGame.title)
-            currentGame.updateRetroAchievements()
-            raCheckTimer.triggeredCount = 0
-            raCheckTimer.restart()
-        } else {
-            //console.log("❌ No RA data available for:", currentGame.title)
-            cacheRAData(currentGame, false)
-            finishRALoading(false)
-        }
-    }
-
-    function cacheRAData(game, hasRA) {
-        var gameKey = game.title + "_" + (game.RaGameId || "0")
-        raCache[gameKey] = {
-            hasRA: hasRA,
-            timestamp: new Date().getTime(),
-            count: game.retroAchievementsCount || 0
-        }
-        //console.log("💾 Cached RA data for:", game.title, "HasRA:", hasRA)
-    }
-
-    function finishRALoading(hasRA, fromCache = false) {
-        if (!fromCache && currentGame) {
-            cacheRAData(currentGame, hasRA)
-        }
-
-        //console.log(hasRA ? "✅ RA loaded - Achievements available" : "❌ RA loaded - No achievements")
-        gameRoot.currentRALoading = false
-        gameRoot.currentRAAvailable = hasRA
-        bottomBar.updateRAStatus(false, hasRA)
-        raCheckTimer.stop()
     }
 
     delegate: Item {
@@ -343,61 +265,6 @@ ListView {
                     }
                 }
 
-                //there's no need
-                /*Item {
-                    id: systemIndicatorContainer
-                    anchors {
-                        left: favoriteIndicatorContainer.right
-                        leftMargin: 2 * vpx
-                        bottom: parent.bottom
-                        bottomMargin: 5 * vpx
-                    }
-                    width: 33 * vpx
-                    height: 33 * vpx
-                    visible: isCurrent
-                    && Utils.shouldShowSystemIcon(list.currentCollectionShortName)
-                    && Utils.getGameCollectionShortName(gameData) !== ""
-
-                    Rectangle {
-                        id: systemBackground
-                        anchors.fill: parent
-                        color: "#80000000"
-                        radius: width / 2
-                    }
-
-                    Image {
-                        id: systemIcon
-                        anchors.centerIn: parent
-                        width: parent.width * 0.75
-                        height: parent.height * 0.75
-                        source: Utils.getSystemImagePath(
-                            Utils.getGameCollectionShortName(gameData)
-                        )
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
-                        asynchronous: true
-
-                        onStatusChanged: {
-                            if (status === Image.Error || status === Image.Null) {
-                                visible = false
-                            } else if (status === Image.Ready) {
-                                visible = true
-                            }
-                        }
-                    }
-
-                    layer.enabled: true
-                    layer.effect: DropShadow {
-                        transparentBorder: true
-                        horizontalOffset: 1
-                        verticalOffset: 1
-                        radius: 2
-                        samples: 5
-                        color: "#40000000"
-                    }
-                }*/
-
                 Item {
                     id: systemTextContainer
                     anchors {
@@ -553,71 +420,6 @@ ListView {
 
     onCurrentGameChanged: {
         //console.log("Game changed to:", currentGame ? currentGame.title : "null")
-
-        raCheckTimer.stop()
-        raUpdateTimer.stop()
-
-        if (currentGame) {
-            raUpdateTimer.restart()
-        } else {
-            finishRALoading(false)
-        }
-    }
-
-    Timer {
-        id: raCheckTimer
-        interval: 500
-        repeat: true
-        running: false
-        property int triggeredCount: 0
-
-        onTriggered: {
-            triggeredCount++
-
-            if (!currentGame) {
-                finishRALoading(false)
-                return
-            }
-
-            var hasRA = currentGame.retroAchievementsCount > 0
-
-            if (hasRA) {
-                //console.log("🎯 RA Count:", currentGame.retroAchievementsCount)
-                finishRALoading(true)
-            } else if (triggeredCount >= 6) {
-                //console.log("⏰ RA timeout - no achievements found")
-                finishRALoading(false)
-            }
-        }
-    }
-
-    Timer {
-        id: raUpdateTimer
-        interval: 50
-        onTriggered: {
-            updateCurrentGameRA()
-        }
-    }
-
-    Timer {
-        id: initializeFirstGameTimer
-        interval: 500
-        onTriggered: {
-            if (currentGame && typeof currentGame.initRetroAchievements === 'function') {
-                currentGame.initRetroAchievements()
-                //console.log("Initial RA initialization for:", currentGame.title)
-
-                if (typeof currentGame.updateRetroAchievements === 'function') {
-                    currentGame.updateRetroAchievements()
-                }
-
-                raCheckTimer.triggeredCount = 0
-                raCheckTimer.restart()
-            } else if (currentGame) {
-                //console.log("Game has no RA functions:", currentGame.title)
-                finishRALoading(false)
-            }
-        }
     }
 
     Rectangle {

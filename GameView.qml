@@ -7,8 +7,6 @@ FocusScope {
 
     property var collection
     property int collectionIndex: 0
-    property bool currentRALoading: false
-    property bool currentRAAvailable: false
     property bool panelsBlurred: false
     property var availableLetters: []
     property string currentLetter: ""
@@ -22,24 +20,11 @@ FocusScope {
 
     signal backRequested()
 
-    Connections {
-        target: gameRoot
-        function onCurrentRALoadingChanged() {
-            bottomBar.updateRAStatus(gameRoot.currentRALoading, gameRoot.currentRAAvailable)
-        }
-        function onCurrentRAAvailableChanged() {
-            bottomBar.updateRAStatus(gameRoot.currentRALoading, gameRoot.currentRAAvailable)
-        }
-    }
-
     onVisibleChanged: {
         if (!visible) {
-            currentRALoading = false
-            currentRAAvailable = false
-            bottomBar.resetRAStatus()
-            applyBlurEffects(false);
+            bottomBar.setRALoading(false)
+            applyBlurEffects(false)
         } else if (gameList.currentGame) {
-            bottomBar.updateRAStatus(currentRALoading, currentRAAvailable)
             gameList.buildLetterIndex()
         }
     }
@@ -99,6 +84,7 @@ FocusScope {
             }
             size: hexSize
             color: root.getHueColor(collectionIndex)
+            radiusHex: 0.05
 
             Image {
                 id: systemImage
@@ -322,21 +308,11 @@ FocusScope {
             else if (api.keys.isFilters(event)) {
                 event.accepted = true
 
-                if (currentGame && currentRAAvailable) {
+                if (currentGame) {
                     soundManager.playOk()
-
-                    if (shouldUpdateRA()) {
-                        if (typeof currentGame.updateRetroAchievements === 'function') {
-                            currentGame.updateRetroAchievements()
-                        }
-                    }
-
                     retroAchievementsView.updateGame(currentGame)
                     retroAchievementsView.show()
-
-                    gameRoot.applyBlurEffects(true);
-                } else if (currentGame) {
-                    soundManager.playNoticeBack()
+                    gameRoot.applyBlurEffects(true)
                 } else {
                     soundManager.playCancel()
                 }
@@ -389,20 +365,6 @@ FocusScope {
 
                 favoriteNotification.show(currentGame.favorite, Utils.cleanGameTitle(currentGame.title))
             }
-        }
-
-        function shouldUpdateRA() {
-            if (!currentGame) return false
-
-                var gameKey = currentGame.title + "_" + (currentGame.RaGameId || "0")
-                var cachedData = gameList.raCache[gameKey]
-
-                if (!cachedData) return true
-
-                    var fiveMinutes = 5 * 60 * 1000
-                    var now = new Date().getTime()
-
-                    return (now - cachedData.timestamp) > fiveMinutes
         }
 
         Component.onCompleted: {
@@ -527,16 +489,19 @@ FocusScope {
         parent: gameRoot
         collectionIndex: gameRoot.collectionIndex
 
+        onRaLoadingChanged: bottomBar.setRALoading(raLoading)
+
         onBackRequested: {
             gameList.focus = true
-            gameRoot.applyBlurEffects(false);
+            gameRoot.applyBlurEffects(false)
         }
 
         onVisibleChanged: {
             if (!visible) {
-                gameRoot.applyBlurEffects(false);
+                gameRoot.applyBlurEffects(false)
+                bottomBar.setRALoading(false)
             } else {
-                gameRoot.applyBlurEffects(true);
+                gameRoot.applyBlurEffects(true)
             }
         }
     }

@@ -17,7 +17,7 @@ Item {
         size: Math.min(hexItem.width, hexItem.height)
         color: root.getHueColor(collectionIndex)
         iconSource: ""
-        radiusHex: 0.10
+        radiusHex: 0.05
 
         Image {
             anchors.centerIn: parent

@@ -99,6 +99,7 @@ FocusScope {
         HexagonIcon {
             anchors.fill: parent
             size: hexSize * 0.3
+            radiusHex: 0.05
             color: root.getHueColor(collectionIndex)
             iconSource: "" /*Utils.getFallbackPixlOSIcon() //random images*/
             Image {

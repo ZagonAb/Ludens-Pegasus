@@ -52,7 +52,7 @@ Item {
             width: parent.width
             height: parent.height
             color: root.getHueColor(collectionIndex)
-            radiusHex: 0.15
+            radiusHex: 0.05
             scale: iconButton.isPressed ? 0.9 : 1.0
 
             Behavior on scale {
@@ -80,7 +80,7 @@ Item {
                 var cx = w / 2
                 var cy = h / 2
                 var radius = Math.min(w, h) / 2 - 2 * vpx
-                var cornerRadius = radius * 0.15
+                var cornerRadius = radius * 0.05
                 ctx.beginPath()
                 ctx.lineWidth = 2 * vpx
                 ctx.strokeStyle = root.isLightTheme ? "#000000" : "#ffffff"

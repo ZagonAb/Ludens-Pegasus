@@ -8,7 +8,7 @@ FocusScope {
     property int currentIndex: 0
     property var collectionListView: null
 
-    width: 400 * vpx
+    width: 480 * vpx
     height: 100 * vpx
 
     visible: panelVisible
@@ -94,8 +94,8 @@ FocusScope {
             text: themeButton.currentStateIndex === 0 ? "Light" : "Dark"
 
             iconStates: [
-                {source: "assets/images/icons/light.svg", rotation: 0},
-                {source: "assets/images/icons/night.svg", rotation: 0}
+                {source: "assets/images/icons/night.svg", rotation: 0},
+                {source: "assets/images/icons/light.svg", rotation: 0}
             ]
 
             Component.onCompleted: {
@@ -126,6 +126,40 @@ FocusScope {
                 }
             }
         }
+
+        AnimatedIconButton {
+            id: raButton
+            isSelected: configPanel.focus && configPanel.currentIndex === 4
+            source: "assets/images/icons/achievement.svg"
+            text: "RA"
+
+            onClicked: {
+                raButton.animateClick()
+                raButton.rotateIcon()
+                raPopup.open()
+            }
+        }
+    }
+
+    RACredentialsPopup {
+        id: raPopup
+        anchors.fill: configPanel
+
+        property real tailOffsetAdjust: 0
+        tailRightMargin: configPanel.width
+            - (slidersRow.x + raButton.x + raButton.width / 2)
+            - (15 * vpx)
+            + tailOffsetAdjust
+
+        tailTopMargin: configPanel.height - (5 * vpx)
+
+        onPopupClosed: {
+            configPanel.forceActiveFocus()
+        }
+
+        onCredentialsSaved: {
+            configPanel.forceActiveFocus()
+        }
     }
 
     Keys.onPressed: {
@@ -142,12 +176,12 @@ FocusScope {
             if (currentIndex > 0) {
                 currentIndex--
             } else {
-                currentIndex = 3
+                currentIndex = 4
             }
         } else if (api.keys.isRight(event)) {
             event.accepted = true
             soundManager.playUp()
-            if (currentIndex < 3) {
+            if (currentIndex < 4) {
                 currentIndex++
             } else {
                 currentIndex = 0
@@ -173,6 +207,10 @@ FocusScope {
                 themeButton.rotateIcon()
                 themeButton.nextState()
                 root.toggleThemeMode(themeButton.currentStateIndex === 0)
+            } else if (currentIndex === 4) {
+                raButton.animateClick()
+                raButton.rotateIcon()
+                raPopup.open()
             }
         }
     }
@@ -200,6 +238,7 @@ FocusScope {
         lightnessSlider.isSelected = focus && currentIndex === 1
         resetButton.isSelected = focus && currentIndex === 2
         themeButton.isSelected = focus && currentIndex === 3
+        raButton.isSelected = focus && currentIndex === 4
     }
 
     Connections {
