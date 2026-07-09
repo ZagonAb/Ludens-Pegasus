@@ -10,12 +10,13 @@ FocusScope {
     property int actualCurrentIndex: 0
     property int collectionIndex: 0
     property bool modelInitialized: false
+    property alias globalColorConfig: globalColorConfig
+    property alias collectionList: collectionList
 
     CollectionsModel {
         id: collectionsModelManager
 
         onModelBuilt: {
-            //console.log("Model built, count:", model.count)
             restoreInitialIndex()
         }
 
@@ -25,7 +26,6 @@ FocusScope {
     }
 
     function setInitialIndex(index) {
-        //console.log("Setting initial index to:", index)
         if (index >= 0 && index < collectionsModelManager.model.count) {
             actualCurrentIndex = index
             collectionList.currentIndex = index
@@ -40,9 +40,7 @@ FocusScope {
     }
 
     function restoreInitialIndex() {
-        //console.log("Restoring initial index...")
         var lastIndex = api.memory.get('collectionIndex')
-        //console.log("Last index from memory:", lastIndex)
 
         if (lastIndex !== undefined && lastIndex !== null) {
             restoreTimer.lastIndex = lastIndex
@@ -57,15 +55,12 @@ FocusScope {
         property int lastIndex: 0
         interval: 100
         onTriggered: {
-            //console.log("Timer triggered, setting index to:", lastIndex)
             setInitialIndex(lastIndex)
         }
     }
 
     Component.onCompleted: {
-        //console.log("CollectionView component completed")
         if (collectionsModelManager.modelReady) {
-            //console.log("Model already ready on CollectionView completion")
             restoreInitialIndex()
         }
     }
@@ -196,9 +191,26 @@ FocusScope {
 
             MouseArea {
                 anchors.fill: parent
+                preventStealing: true
+
                 onClicked: {
-                    collectionList.currentIndex = index
-                    actualCurrentIndex = index
+                    var newIndex = index
+                    var oldIndex = collectionList.currentIndex
+
+                    if (newIndex !== oldIndex) {
+                        if (newIndex > oldIndex)
+                            soundManager.playDown()
+                            else
+                                soundManager.playUp()
+                    }
+
+                    collectionList.currentIndex = newIndex
+                    actualCurrentIndex = newIndex
+                }
+
+                onDoubleClicked: {
+                    soundManager.playOk()
+                    collectionRoot.selectCurrentCollection()
                 }
             }
         }
@@ -220,7 +232,6 @@ FocusScope {
                     (currentCollection.shortName === "favorite" || currentCollection.shortName === "history") &&
                     currentCollection.games &&
                     currentCollection.games.count === 0) {
-                    //console.log("Cannot access empty " + currentCollection.name + " collection")
                     soundManager.playNoticeBack()
                     return
                     }
@@ -261,6 +272,19 @@ FocusScope {
         noiseIntensity: 0.03
         noiseOpacity: 0.5
         visible: globalColorConfig.focus
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: globalColorConfig.focus
+            onClicked: {
+                soundManager.playCancel()
+                if (globalColorConfig.raPopup && globalColorConfig.raPopup.isOpen) {
+                    globalColorConfig.raPopup.close()
+                }
+                globalColorConfig.focus = false
+                collectionList.focus = true
+            }
+        }
     }
 
     Column {
@@ -326,7 +350,6 @@ FocusScope {
             if ((selectedCollection.shortName === "favorite" || selectedCollection.shortName === "history") &&
                 selectedCollection.games &&
                 selectedCollection.games.count === 0) {
-                //console.log(selectedCollection.name + " collection is empty, cannot access")
                 soundManager.playNoticeBack()
                 return
                 }
@@ -346,10 +369,8 @@ FocusScope {
                     var firstGame = selectedCollection.games.get(0)
                     if (firstGame && typeof firstGame.initRetroAchievements === 'function') {
                         firstGame.initRetroAchievements()
-                        //console.log("Pre-initialized RA for first game:", firstGame.title)
                     }
                 }
-
                 collectionSelected(collectionObject)
         }
     }

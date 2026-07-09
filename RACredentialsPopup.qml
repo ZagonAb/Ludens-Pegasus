@@ -83,6 +83,7 @@ FocusScope {
     }
 
     function open() {
+        soundManager.playOk()
         _userInput.text = api.memory.has("ra_api_user") ? api.memory.get("ra_api_user") : ""
         _keyInput.text = api.memory.has("ra_api_key") ? api.memory.get("ra_api_key") : ""
         _testState = "idle"

@@ -9,10 +9,8 @@ ListView {
     property int collectionIndex: 0
     property string currentCollectionShortName: {
         if (collection) {
-            //console.log("GameList collection:", collection.name, "shortName:", collection.shortName);
             return collection.shortName || "";
         }
-        //console.log("GameList: No collection available");
         return "";
     }
     property bool skipNextUpdate: false
@@ -26,6 +24,9 @@ ListView {
     preferredHighlightBegin: height / 2 - 70 * vpx
     preferredHighlightEnd: height / 2 + 70 * vpx
     highlightFollowsCurrentItem: true
+    interactive: true
+    flickDeceleration: 1500
+    maximumFlickVelocity: 2500
 
     Component.onCompleted: {
         positionViewAtIndex(0, ListView.Center)
@@ -150,7 +151,6 @@ ListView {
 
                     onStatusChanged: {
                         if (status === Image.Error) {
-                            //console.log("Image failed for game:", modelData.title, "Source:", source);
                             if (source === modelData.assets.boxFront && modelData.assets.screenshot) {
                                 source = modelData.assets.screenshot;
                             } else if (source === modelData.assets.screenshot && modelData.assets.titlescreen) {
@@ -163,7 +163,6 @@ ListView {
                                 source = "assets/images/Pegasus-Frontend/icon_0.png" /*Utils.getFallbackPixlOSIcon() //random images*/
                             }
                         } else if (status === Image.Ready) {
-                            //console.log("Image loaded successfully for game:", modelData.title);
                         }
                     }
                 }
@@ -297,23 +296,13 @@ ListView {
 
                         text: {
                             if (!isCurrent || !gameData) {
-                                //console.log("systemNameText: Not current or no gameData");
                                 return "";
                             }
-
                             var shouldShow = Utils.shouldShowSystemIcon(list.currentCollectionShortName);
-                            //console.log("Should show system icon:", shouldShow, "for collection:", list.currentCollectionShortName);
-
                             if (!shouldShow) return "";
-
                             var collectionShortName = Utils.getGameCollectionShortName(gameData);
-                            //console.log("Retrieved shortName:", collectionShortName, "for game:", gameData.title);
-
                             if (!collectionShortName || collectionShortName === "") return "";
-
                             var displayName = collectionShortName.toUpperCase();
-                            //console.log("Final display name:", displayName);
-
                             return displayName;
                         }
 
@@ -415,6 +404,63 @@ ListView {
 
         onIsCurrentChanged: {
             bubbleCanvas.requestPaint()
+        }
+
+        MouseArea {
+            id: itemMouseArea
+            anchors.fill: parent
+            z: 10
+
+            property real pressX: 0
+            property real pressY: 0
+            property bool wasDrag: false
+            property int tapCount: 0
+
+            Timer {
+                id: doubleTapTimer
+                interval: 350
+                onTriggered: {
+                    itemMouseArea.tapCount = 0
+                }
+            }
+
+            onPressed: {
+                pressX = mouse.x
+                pressY = mouse.y
+                wasDrag = false
+            }
+
+            onPositionChanged: {
+                var dx = Math.abs(mouse.x - pressX)
+                var dy = Math.abs(mouse.y - pressY)
+                if (dx > 10 || dy > 10) {
+                    wasDrag = true
+                }
+            }
+
+            onReleased: {
+                if (wasDrag) return
+
+                if (index !== list.currentIndex) {
+                    list.currentIndex = index
+                    soundManager.playDown()
+                    tapCount = 0
+                    doubleTapTimer.stop()
+                    return
+                }
+
+                tapCount++
+                if (tapCount === 1) {
+                    doubleTapTimer.restart()
+                    soundManager.playOk()
+                } else if (tapCount >= 2) {
+                    doubleTapTimer.stop()
+                    tapCount = 0
+                    soundManager.playOk()
+                    list.forceActiveFocus()
+                    launchGame()
+                }
+            }
         }
     }
 

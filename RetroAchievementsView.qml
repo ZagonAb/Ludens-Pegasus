@@ -630,6 +630,9 @@ FocusScope {
             }
             clip: true
             spacing: 6 * vpx
+            boundsBehavior: Flickable.StopAtBounds
+            maximumFlickVelocity: 2500 * vpx
+            flickDeceleration: 1500 * vpx
 
             visible: !raView._searching && !raView._loading
             && raView._errorMsg === ""
@@ -871,6 +874,17 @@ FocusScope {
                         }
                     }
                 }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (raListView.currentIndex !== index) {
+                            soundManager.playOk()
+                            raListView.currentIndex = index
+                        }
+                    }
+                }
             }
 
             highlight: Rectangle {
@@ -888,27 +902,52 @@ FocusScope {
 
             Component {
                 id: footerItemComponent
-                Row {
-                    spacing: 5 * vpx
-                    anchors.verticalCenter: parent.verticalCenter
+                Item {
+                    id: footerItemRoot
+                    width: footerItemRow.width
+                    height: footerItemRow.height
                     opacity: modelData.enabled !== undefined ? (modelData.enabled ? 1.0 : 0.5) : 1.0
 
-                    Image {
+                    Row {
+                        id: footerItemRow
+                        spacing: 5 * vpx
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 24 * vpx
-                        height: 24 * vpx
-                        source: modelData.icon
-                        fillMode: Image.PreserveAspectFit
-                        mipmap: true
+
+                        Image {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 24 * vpx
+                            height: 24 * vpx
+                            source: modelData.icon
+                            fillMode: Image.PreserveAspectFit
+                            mipmap: true
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: raView._searching || raView._loading
+                            ? (modelData.text === "Reload" ? "Loading…" : modelData.text)
+                            : modelData.text
+                            font { family: global.fonts.sans; pixelSize: 16 * vpx }
+                            color: textSecondary
+                        }
                     }
 
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: raView._searching || raView._loading
-                        ? (modelData.text === "Reload" ? "Loading…" : modelData.text)
-                        : modelData.text
-                        font { family: global.fonts.sans; pixelSize: 16 * vpx }
-                        color: textSecondary
+                    MouseArea {
+                        anchors.fill: parent
+                        enabled: modelData.text === "Reload" || modelData.text === "Back"
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                        onClicked: {
+                            if (modelData.text === "Reload") {
+                                if (!raView._searching && !raView._loading) {
+                                    soundManager.playOk()
+                                    raView.load()
+                                }
+                            } else if (modelData.text === "Back") {
+                                soundManager.playCancel()
+                                raView.hide()
+                            }
+                        }
                     }
                 }
             }

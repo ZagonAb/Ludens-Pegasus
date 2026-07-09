@@ -118,7 +118,6 @@ FocusScope {
         collectionIndex: collectionView.actualCurrentIndex
 
         onBackRequested: {
-            //console.log("Back requested from GameView")
             root.inCollectionView = false
             collectionView.focus = true
             collectionView.forceActiveFocus()
@@ -135,6 +134,18 @@ FocusScope {
         height: 60 * root.vpx
         inGameView: root.inCollectionView
         blurred: root.inCollectionView && gameView.panelsBlurred
+
+        onColorSettingsClicked: {
+            soundManager.playOk()
+            collectionView.globalColorConfig.focus = true
+            collectionView.globalColorConfig.currentIndex = 0
+            collectionView.collectionList.focus = false
+        }
+
+        onOkClicked: {
+            soundManager.playOk()
+            collectionView.selectCurrentCollection()
+        }
     }
 
     StatusBar {
@@ -162,7 +173,6 @@ FocusScope {
 
                 var wasLaunching = api.memory.get('gameLaunching')
                 if (wasLaunching) {
-                    //console.log("🔙 Returning from game launch, staying in CollectionView")
                     root.inCollectionView = false
                     api.memory.set('gameLaunching', false)
                     collectionView.focus = true

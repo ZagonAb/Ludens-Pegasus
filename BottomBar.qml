@@ -9,6 +9,13 @@ Rectangle {
     property bool raLoading: false
     property bool blurred: false
 
+    signal colorSettingsClicked()
+    signal okClicked()
+    signal favoriteClicked()
+    signal runClicked()
+    signal backClicked()
+    signal achievementsClicked()
+
     color: "#000000"
 
     Item {
@@ -32,24 +39,32 @@ Rectangle {
                 iconSource: inGameView ? "assets/images/icons/favorite.png" : ""
                 label: inGameView ? "Favorite" : ""
                 visible: inGameView
+                clickable: inGameView
+                onClicked: bar.favoriteClicked()
             }
 
             BarButton {
                 iconSource: inGameView ? "assets/images/icons/ok.png" : ""
                 label: inGameView ? "Run" : ""
                 visible: inGameView
+                clickable: inGameView
+                onClicked: bar.runClicked()
             }
 
             BarButton {
                 iconSource: inGameView ? "assets/images/icons/back.png" : ""
                 label: inGameView ? "Back" : ""
                 visible: inGameView
+                clickable: inGameView
+                onClicked: bar.backClicked()
             }
 
             BarButton {
                 iconSource: !inGameView ? "assets/images/icons/setting.png" : ""
                 label: !inGameView ? "Color Setting" : ""
                 visible: !inGameView
+                clickable: !inGameView
+                onClicked: bar.colorSettingsClicked()
             }
         }
 
@@ -65,6 +80,8 @@ Rectangle {
                 iconSource: !inGameView ? "assets/images/icons/ok.png" : ""
                 label: !inGameView ? "Ok" : ""
                 visible: !inGameView
+                clickable: !inGameView
+                onClicked: bar.okClicked()
             }
 
             BarButton {
@@ -76,6 +93,8 @@ Rectangle {
                 rotating: raLoading
                 visible: inGameView
                 opacity: raLoading ? 0.6 : 1.0
+                clickable: inGameView && !raLoading
+                onClicked: bar.achievementsClicked()
             }
         }
     }

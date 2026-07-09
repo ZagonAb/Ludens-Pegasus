@@ -7,6 +7,7 @@ FocusScope {
     property bool panelVisible: true
     property int currentIndex: 0
     property var collectionListView: null
+    property alias raPopup: raPopup
 
     width: 480 * vpx
     height: 100 * vpx
@@ -83,6 +84,7 @@ FocusScope {
             text: "Reset"
 
             onClicked: {
+                soundManager.playOk()
                 root.hueSaturation = 0.4
                 root.hueLightness = 0.49
             }
@@ -105,6 +107,7 @@ FocusScope {
             }
 
             onClicked: {
+                soundManager.playOk()
                 themeButton.nextState()
                 root.toggleThemeMode(themeButton.currentStateIndex === 0)
             }
@@ -136,7 +139,11 @@ FocusScope {
             onClicked: {
                 raButton.animateClick()
                 raButton.rotateIcon()
-                raPopup.open()
+                if (raPopup.isOpen) {
+                    raPopup.close()
+                } else {
+                    raPopup.open()
+                }
             }
         }
     }
@@ -210,7 +217,11 @@ FocusScope {
             } else if (currentIndex === 4) {
                 raButton.animateClick()
                 raButton.rotateIcon()
-                raPopup.open()
+                if (raPopup.isOpen) {
+                    raPopup.close()
+                } else {
+                    raPopup.open()
+                }
             }
         }
     }

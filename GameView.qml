@@ -154,6 +154,39 @@ FocusScope {
         }
     }
 
+    Connections {
+        target: bottomBar
+
+        function onFavoriteClicked() {
+            gameList.forceActiveFocus()
+            gameList.toggleFavorite()
+        }
+
+        function onRunClicked() {
+            gameList.forceActiveFocus()
+            soundManager.playOk()
+            launchGame()
+        }
+
+        function onBackClicked() {
+            gameList.forceActiveFocus()
+            soundManager.playCancel()
+            backRequested()
+        }
+
+        function onAchievementsClicked() {
+            gameList.forceActiveFocus()
+            if (gameList.currentGame) {
+                soundManager.playOk()
+                retroAchievementsView.updateGame(gameList.currentGame)
+                retroAchievementsView.show()
+                gameRoot.applyBlurEffects(true)
+            } else {
+                soundManager.playCancel()
+            }
+        }
+    }
+
     GameList {
         id: gameList
         anchors {
@@ -480,6 +513,15 @@ FocusScope {
         noiseIntensity: 0.03
         noiseOpacity: 0.5
         visible: gameRoot.panelsBlurred || gameRoot.letterNavigationBlur
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: retroAchievementsView.visible
+            onClicked: {
+                soundManager.playCancel()
+                retroAchievementsView.hide()
+            }
+        }
     }
 
     RetroAchievementsView {
