@@ -2,10 +2,11 @@
 
 - Ludens — a minimalist theme for [Pegasus-Frontend](https://pegasus-frontend.org/)
 
-![screen0](https://github.com/ZagonAb/Ludens-Pegasus/blob/8ade1022cdfdc9f478150a5baa997430e699a4ed/.meta/screenshots/screen0.png)
+![screen0](https://github.com/ZagonAb/Ludens-Pegasus/blob/681f563d4dafb8e4a96e332fc55ce08db1f36a42/.meta/screenshots/screen0.png)
 
-![screen1](https://github.com/ZagonAb/Ludens-Pegasus/blob/8ade1022cdfdc9f478150a5baa997430e699a4ed/.meta/screenshots/screen1.png)
+![screen1](https://github.com/ZagonAb/Ludens-Pegasus/blob/681f563d4dafb8e4a96e332fc55ce08db1f36a42/.meta/screenshots/screen1.png)
 
+![screen2](https://github.com/ZagonAb/Ludens-Pegasus/blob/681f563d4dafb8e4a96e332fc55ce08db1f36a42/.meta/screenshots/screen2.png)
 
 ## 🧩 Inspiration
 
