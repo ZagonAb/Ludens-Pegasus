@@ -76,13 +76,25 @@ FocusScope {
                            function(m){ return map[m] || m })
     }
 
+    // Quita etiquetas de región/revisión: "Game (USA) (Rev 1) [!]" -> "Game"
+    function _stripTags(str) {
+        if (!str) return ""
+        var t = str.replace(/\([^)]*\)/g, " ").replace(/\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim()
+        return t !== "" ? t : str
+    }
+
     function _normalize(str) {
         if (!str) return ""
-            return _romanToArabic(str.toLowerCase())
-            .replace(/\b(the|a|an)\b\s*/g, "")
-            .replace(/[:\-\u2013_',\.\!?®™©\(\)\[\]\/\\]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
+        // 1) Apóstrofes (rectos y tipográficos) se ELIMINAN: "Eye's" -> "eyes", "Kirby's" -> "kirbys"
+        // 2) "&" se trata como la palabra "and"
+        var s = str.toLowerCase()
+        .replace(/[\u0027\u2018\u2019\u00b4\u0060]/g, "")
+        .replace(/&/g, " and ")
+        return _romanToArabic(s)
+        .replace(/\b(the|a|an)\b\s*/g, "")
+        .replace(/[:\-\u2013\u2014_,\.\!\?®™©\(\)\[\]\/\\]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
     }
 
     function _words(norm) {
@@ -90,9 +102,12 @@ FocusScope {
     }
 
     function _matchScore(pegTitle, raTitle) {
-        var pNorm = _normalize(pegTitle)
+        var pNorm = _normalize(_stripTags(pegTitle))
         var rNorm = _normalize(raTitle)
         if (pNorm === rNorm) return 2.0
+
+        // Misma cadena ignorando espacios: "Pac Man" == "PacMan"
+        if (pNorm.replace(/ /g, "") === rNorm.replace(/ /g, "")) return 1.9
 
             var pWords = _words(pNorm)
             var rWords = _words(rNorm)
