@@ -76,7 +76,6 @@ FocusScope {
                            function(m){ return map[m] || m })
     }
 
-    // Quita etiquetas de región/revisión: "Game (USA) (Rev 1) [!]" -> "Game"
     function _stripTags(str) {
         if (!str) return ""
         var t = str.replace(/\([^)]*\)/g, " ").replace(/\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim()
@@ -85,8 +84,6 @@ FocusScope {
 
     function _normalize(str) {
         if (!str) return ""
-        // 1) Apóstrofes (rectos y tipográficos) se ELIMINAN: "Eye's" -> "eyes", "Kirby's" -> "kirbys"
-        // 2) "&" se trata como la palabra "and"
         var s = str.toLowerCase()
         .replace(/[\u0027\u2018\u2019\u00b4\u0060]/g, "")
         .replace(/&/g, " and ")
@@ -106,7 +103,6 @@ FocusScope {
         var rNorm = _normalize(raTitle)
         if (pNorm === rNorm) return 2.0
 
-        // Misma cadena ignorando espacios: "Pac Man" == "PacMan"
         if (pNorm.replace(/ /g, "") === rNorm.replace(/ /g, "")) return 1.9
 
             var pWords = _words(pNorm)
